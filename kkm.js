@@ -1,5 +1,5 @@
 let cp866buffer = require('node-cp866buffer');
-//let SerialPort = require('serialport');
+let SerialPort = require('serialport');
 
 /* Расчет массива BYTE для просчета crc
 
@@ -352,24 +352,54 @@ class Kkm{
                 ['00', '01', '02']
             ];
 
-            let str = '643F9C';
-
             data = cp866buffer.encode(data);
-            str += Kkm.getLengthTlv(data);
+            let cut = [],arr = [...data], flag = true;
+            while(flag){
+                let cutEl = arr.splice(0,124);
+                if(cutEl.length > 0){
+                    cut.push(cutEl);
+                }else
+                    flag = false;
+            }
+
+            cut = cut.map(el => {
+                let start = '643F9C';
+                start += Kkm.getLengthTlv(el);
+                param.forEach((p,i) => {
+                    start += params[i][p];
+                });
+                start += Buffer.from(el).toString('hex');
+
+                return start;
+            });
+
+            return cut;
+        },
+        65 : function(param) {
+            let params = [
+                    ['00','01']
+                ],
+                str = '65';
 
             param.forEach((el,i) => {
                 str += params[i][el];
             });
 
-            return str + data.toString('hex');
+            return str;
+        },
 
-        }
     }
 
     get(cmd,data = ''){
-        let str = Kkm.Command[cmd.cmd](cmd.param,data)
+        let res = Kkm.Command[cmd.cmd](cmd.param,data);
+        if(res instanceof Array){
+            res = res.map(el =>{
+                return this.start + Kkm.getLength(el) + el + Crc.get(Buffer.from(Kkm.getLength(el) + el,'hex'))
+            })
+        }else
+            res = this.start + Kkm.getLength(res) + res + Crc.get(Buffer.from(Kkm.getLength(res) + res,'hex'))
 
-        return this.start + Kkm.getLength(str) + str + Crc.get(Buffer.from(Kkm.getLength(str) + str,'hex')) ;
+        return res;
     }
 
     static getLength(str){
@@ -385,65 +415,32 @@ class Kkm{
 
 
 
-let text = 'Строка для печати...';
+let text = 'Команды 0x64 и 0x65 используется для форматированного вывода на печать любой текстовой\n' +
+    'информации. Тем самым расширяя возможности печати произвольного текста по сравнению с\n' +
+    'предыдущей версией конфигурации ККТ\n' +
+    'Длина одной команды ограничена размером пакета (см. логический уровень)\n' +
+    'Отдельно взятой командой 0x64 можно передавать как один, так и несколько текстовых\n' +
+    'фрагментов, главное, чтобы не превышался максимальный размер пакета.\n' +
+    'Можно выполнять несколько команд подряд, последовательно заполняя буфер печати.\n' +
+    'Максимальная Длина текста для одной передаваемой строки равна 124 байт\n' +
+    'Максимальное количество хранимых строк в буфере равно 255;';
 let kkm = new Kkm();
 
-console.log(kkm.get({cmd : 64,param : [0,0]},text));
-console.log('B629001B643F9C1600000091E2E0AEAAA020A4ABEF20AFA5E7A0E2A82E2E2E97A9');
+let data = kkm.get({cmd : 64,param : [0,0]},text);
+data.push(kkm.get({cmd : 65,param : [0]}));
+data.push(kkm.get({cmd : 62,param : [0]}));
 
 
 
+var port = new SerialPort('COM4');
+
+data.forEach(el => {
+    port.write(el,function(err) {
+            if (err) {
+                return console.log('Error on write: ', err.message);
+            }
+        }
+    );
+})
 
 
-
-//console.log(Kkm.getTlv(text));
-
-
-
-
-
-
-
-let textBuffer = cp866buffer.encode(text);
-let bufferLength = textBuffer.length;
-let start = 'B629';
-let cmd = '643F9C';
-let cmdl = 3;
-
-let len64 = (+ bufferLength + 2).toString(16).padStart(2,"0") + '00';
-
-let len = '00'+ (+ bufferLength + cmdl + 4).toString(16).padStart(2,"0");
-
-let crcBuffer = Buffer.from((len + cmd + len64 + '0000' + textBuffer.toString('hex')),'hex');
-
-
-
-
-
-
-//let command = start + len + cmd + len64 + '0000' + textBuffer.toString('hex') + crcStr;
-
-
-// var port = new SerialPort('COM4');
-//
-// port.write(Buffer.from(command,'hex'),function(err) {
-//         if (err) {
-//             return console.log('Error on write: ', err.message);
-//         }
-//     }
-// );
-// port.write(Buffer.from('B629000265007F1E','hex'),function(err) {
-//         if (err) {
-//             return console.log('Error on write: ', err.message);
-//         }
-//     }
-// );
-// port.write(Buffer.from('B62900026200E887','hex'),function(err) {
-//         if (err) {
-//             return console.log('Error on write: ', err.message);
-//         }
-//     }
-// );
-
-
-///B6 29 00 02 62 00 E8 87
