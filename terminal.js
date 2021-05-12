@@ -61,7 +61,7 @@ data.push(kkm.get({cmd : 62,param : [0]}));
 var port = new SerialPort('COM4');
 
 data.forEach(el => {
-    port.write(el,function(err) {
+    port.write(Buffer.from(el,'hex'),function(err) {
             if (err) {
                 return console.log('Error on write: ', err.message);
             }
