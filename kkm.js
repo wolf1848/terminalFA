@@ -1,6 +1,3 @@
-let cp866buffer = require('node-cp866buffer');
-let SerialPort = require('serialport');
-
 /* Расчет массива BYTE для просчета crc
 
         let temp,
@@ -352,7 +349,6 @@ class Kkm{
                 ['00', '01', '02']
             ];
 
-            data = cp866buffer.encode(data);
             let cut = [],arr = [...data], flag = true;
             while(flag){
                 let cutEl = arr.splice(0,124);
@@ -412,35 +408,4 @@ class Kkm{
 
 }
 
-
-
-
-let text = 'Команды 0x64 и 0x65 используется для форматированного вывода на печать любой текстовой\n' +
-    'информации. Тем самым расширяя возможности печати произвольного текста по сравнению с\n' +
-    'предыдущей версией конфигурации ККТ\n' +
-    'Длина одной команды ограничена размером пакета (см. логический уровень)\n' +
-    'Отдельно взятой командой 0x64 можно передавать как один, так и несколько текстовых\n' +
-    'фрагментов, главное, чтобы не превышался максимальный размер пакета.\n' +
-    'Можно выполнять несколько команд подряд, последовательно заполняя буфер печати.\n' +
-    'Максимальная Длина текста для одной передаваемой строки равна 124 байт\n' +
-    'Максимальное количество хранимых строк в буфере равно 255;';
-let kkm = new Kkm();
-
-let data = kkm.get({cmd : 64,param : [0,0]},text);
-data.push(kkm.get({cmd : 65,param : [0]}));
-data.push(kkm.get({cmd : 62,param : [0]}));
-
-
-
-var port = new SerialPort('COM4');
-
-data.forEach(el => {
-    port.write(el,function(err) {
-            if (err) {
-                return console.log('Error on write: ', err.message);
-            }
-        }
-    );
-})
-
-
+module.exports = Kkm;
