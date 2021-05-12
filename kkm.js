@@ -303,7 +303,8 @@ class Crc{
             crc = Crc.XOR(start,finish)
         }
 
-        str = crc.toString(16)
+        str = (crc.toString(16) + "").padStart(4,"0");
+
         return str[2] + str[3] + str[0] + str[1];
     }
 
@@ -333,9 +334,9 @@ class Kkm{
     static Command = {
         62 : function(param) {
             let params = [
-                ['00','01']
-            ],
-            str = '62';
+                    ['00','01']
+                ],
+                str = '62';
 
             param.forEach((el,i) => {
                 str += params[i][el];
@@ -390,6 +391,7 @@ class Kkm{
         let res = Kkm.Command[cmd.cmd](cmd.param,data);
         if(res instanceof Array){
             res = res.map(el =>{
+
                 return this.start + Kkm.getLength(el) + el + Crc.get(Buffer.from(Kkm.getLength(el) + el,'hex'))
             })
         }else
