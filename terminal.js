@@ -4,7 +4,7 @@ let cp866buffer = require('node-cp866buffer');
 let SerialPort = require('serialport');
 const Kkm = require('./kkm');
 
-
+/* Оплата сбер
 sbrf.SParam('Amount', 1*100);
 opResultCode = sbrf.NFun(4000);
 sbrf.NFun(6003);
@@ -72,4 +72,21 @@ data.forEach((el,i) => {
 
 sbrf.NFun(6004);
 
-sbrf.clear();
+sbrf.clear();*/
+let kkm = new Kkm();
+var port = new SerialPort('COM4');
+
+let data = [];
+data.push(kkm.get({cmd : 20,param : []}));
+
+data.forEach((el,i) => {
+    port.write(Buffer.from(el,'hex'),function(err) {
+            if (err) {
+                return console.log('Error on write: ', err.message);
+            }
+        }
+    );
+    port.on('readable', function () {
+        console.log('Data:', port.read())
+    })
+});

@@ -333,7 +333,15 @@ class Kkm{
 
     static Command = {
 
+        20 : function() {
+            let str = '20';
+            return str;
+        },
 
+        22 : function() {
+            let str = '22';
+            return str;
+        },
 
 
         62 : function(param) {
