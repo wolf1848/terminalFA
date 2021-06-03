@@ -78,7 +78,7 @@ var port = new SerialPort('COM4');
 
 let data = [];
 data.push(kkm.get({cmd : 20,param : []}));
-
+console.log(data);
 data.forEach((el,i) => {
     port.write(Buffer.from(el,'hex'),function(err) {
             if (err) {
