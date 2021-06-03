@@ -332,6 +332,10 @@ class Kkm{
     }
 
     static Command = {
+
+
+
+
         62 : function(param) {
             let params = [
                     ['00','01']
