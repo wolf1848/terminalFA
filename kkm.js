@@ -332,18 +332,151 @@ class Kkm{
     }
 
     static Command = {
-
+        //Отмена документа
+        10 : function() {
+            let str = '10';
+            return str;
+        },
+        //Запрос статуса смены
         20 : function() {
             let str = '20';
             return str;
         },
+        // Начало открытия смены
+        21 : function(param) {
+            let params = [
+                    ['00','01']
+                ],
+                str = '21';
 
+            param.forEach((el,i) => {
+                str += params[i][el];
+            });
+
+            return str;
+        },
+        // Открытие смены
         22 : function() {
             let str = '22';
             return str;
         },
+        // Открыть чек
+        23 : function() {
+            let str = '2345A0';
+            return str;
+        },
+        // Передать данные предмета расчета
+        '2B' : function(param,data) {
+            let obj = {
+                name                : Kkm.getTag(1030,data.name),
+                price               : Kkm.getTag(1079,Kkm.getVlnLe(data.price*100)),
+                count               : Kkm.getTag(1023,Kkm.getFvlnLe(data.count)),
+                nds                 : Kkm.getTag(1199,'01'),
+                payFlag             : Kkm.getTag(1214,'04'),
+                productTypeFlag     : Kkm.getTag(1212,'01'),
+                codeTN              : Kkm.getTag(1162,''),
+                metric              : Kkm.getTag(1197,''),
+                akciz               : Kkm.getTag(1229,'00'),
+                numberTD            : Kkm.getTag(1231,''),
+                contryCode          : Kkm.getTag(1230,''),
+                dReq                : Kkm.getTag(1191,''),
+                agentFlag           : Kkm.getTag(1222,'00'),
+                phonePayAgent       : Kkm.getTag(1075,''),
+                OPA			    	: Kkm.getTag(1044,''),
+                TPA			    	: Kkm.getTag(1073,''),
+                TOPP			    : Kkm.getTag(1074,''),
+                NOP			    	: Kkm.getTag(1026,''),
+                AOP			    	: Kkm.getTag(1005,''),
+                INNOP		    	: Kkm.getTag(1016,''),
+                TP			    	: Kkm.getTag(1171,''),
+                NP			    	: Kkm.getTag(1225,''),
+                INNP		    	: Kkm.getTag(1226,'202020202020202020202020'),
+            }
+            let implodeStr = ''
+            for(let key in obj){
+                let el = obj[key];
+                implodeStr += el
+            }
 
 
+            let buffer = Kkm.getTag(1059,implodeStr)
+
+            let str = '2B' + buffer;
+            return str;
+        },
+        // Передать данные платежного агента
+        '2C' : function() {
+            let obj = {
+                agentFlag           : Kkm.getTag(1057,'00'),
+                phonePayAgent       : Kkm.getTag(1073,''),
+                OPA			    	: Kkm.getTag(1044,''),
+                TOPP			    : Kkm.getTag(1074,''),
+                NOP			    	: Kkm.getTag(1026,''),
+                INNOP		    	: Kkm.getTag(1016,'202020202020202020202020'),
+                AOP			    	: Kkm.getTag(1005,''),
+                TPA			    	: Kkm.getTag(1075,''),
+                TP			    	: Kkm.getTag(1171,''),
+            }
+            let implodeStr = ''
+            for(let key in obj){
+                let el = obj[key];
+                implodeStr += el
+            }
+
+            let str = '2C' + implodeStr;
+            return str;
+        },
+        // Передать данные оплаты
+        '2D' : function(param,data) {
+            let obj = {
+                regimTax            : Kkm.getTag(1055,'01'),
+                NAL       			: Kkm.getTag(1031,'00'),
+                BNAL		    	: Kkm.getTag(1081 ,Kkm.getVlnLe(data*100)),
+                PRED			    : Kkm.getTag(1215,'00'),
+                POST		    	: Kkm.getTag(1216,'00'),
+                CRED		    	: Kkm.getTag(1217,'00'),
+                clienEmail	    	: Kkm.getTag(1008,''),
+                INNclient	    	: Kkm.getTag(1228,'202020202020202020202020'),
+                client	    		: Kkm.getTag(1227,''),
+                DOPREQ	    		: Kkm.getTag(1192,''),
+
+            }
+            let implodeStr = ''
+            for(let key in obj){
+                let el = obj[key];
+                implodeStr += el
+            }
+
+            let str = '2D' + implodeStr;
+            return str;
+        },
+        // Сформировать чек
+        24 : function(param,data) {
+
+            //2401 приход
+            //2402 возврат
+            let str = '2401' + Kkm.getVlnLe(data*100).padEnd(10,"0");
+            return str;
+        },
+        // Начало закрытия смены
+        29 : function(param) {
+            let params = [
+                    ['00','01']
+                ],
+                str = '29';
+
+            param.forEach((el,i) => {
+                str += params[i][el];
+            });
+
+            return str;
+        },
+        //Закрытие смены
+        '2A' : function() {
+            let str = '2A';
+            return str;
+        },
+        // Отрезать бумагу
         62 : function(param) {
             let params = [
                     ['00','01']
@@ -356,43 +489,23 @@ class Kkm{
 
             return str;
         },
+        //Записать в буфер печати массив форматированных строк символов
         64 : function(param,data){
             let params = [
                 ['00', '08', '10', '20', '40', '80'],
                 ['00', '01', '02']
             ];
-
-            let cut = [],arr = [...data], flag = true;
-            while(flag){
-                let cutEl = arr.splice(0,124);
-                if(cutEl.length > 0){
-                    cut.push(cutEl);
-                }else
-                    flag = false;
-            }
-
-            cut = cut.map(el => {
-                let start = '643F9C';
-                start += Kkm.getLengthTlv(el);
-                param.forEach((p,i) => {
-                    start += params[i][p];
-                });
-                start += Buffer.from(el).toString('hex');
-
-                return start;
-            });
-
-            return cut;
-        },
-        65 : function(param) {
-            let params = [
-                    ['00','01']
-                ],
-                str = '65';
+            let paramsStr = '';
 
             param.forEach((el,i) => {
-                str += params[i][el];
+                paramsStr += params[i][el];
             });
+
+            return '64' + Kkm.getTag(39999,paramsStr + data);
+        },
+        // Печать буфера форматированных строк
+        65 : function(param) {
+            let str = '65';
 
             return str;
         },
@@ -418,6 +531,27 @@ class Kkm{
 
     static getLengthTlv(buffer){
         return ((buffer.length + 2).toString(16) + '').padStart(2,"0") + '00';
+    }
+
+    static getTag(num,data){
+        if(!(data instanceof Object)){
+            data = Buffer.from(data,'hex')
+        }
+        let len = (data.length.toString(16) + '').padStart(4,"0")
+        let str = (num.toString(16) + '').padStart(4,"0")
+        return str[2] + str[3] + str[0] +str[1] + len[2] + len[3] + len[0] + len[1] + Buffer.from(data).toString('hex');
+    }
+    static  getVlnLe(num){
+        let str = num.toString(16);
+        if(str % 2 != 0)
+            str = '0' + str;
+        return (Buffer.from(str,'hex').reverse()).toString('hex');
+    }
+    static  getFvlnLe(num){
+        let str = num.toString(16);
+        if(str % 2 != 0)
+            str = '0' + str;
+        return '00' + (Buffer.from(str,'hex').reverse()).toString('hex');
     }
 
 }
