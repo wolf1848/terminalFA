@@ -543,7 +543,7 @@ class Kkm{
     }
     static  getVlnLe(num){
         let str = num.toString(16);
-        if(str % 2 != 0)
+        if(str.length % 2 != 0)
             str = '0' + str;
         return (Buffer.from(str,'hex').reverse()).toString('hex');
     }
